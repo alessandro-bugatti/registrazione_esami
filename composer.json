@@ -2,6 +2,7 @@
     "require": {
         "slim/slim": "4.*",
         "slim/psr7": "^1.5",
-        "league/plates": "^3.4"
+        "league/plates": "^3.4",
+        "php-di/slim-bridge": "*"
     }
 }
