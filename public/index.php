@@ -2,8 +2,17 @@
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
+use DI\Container as Container;
 
 require __DIR__ . '/../vendor/autoload.php';
+
+$container = new Container();
+//da inserire prima della create di AppFactory
+AppFactory::setContainer($container);
+
+$container->set('template', function (){
+    return new League\Plates\Engine('../templates', 'phtml');
+});
 
 $app = AppFactory::create();
 
@@ -33,5 +42,23 @@ $app->get('/altra_pagina', function (Request $request, Response $response, $args
     $response->getBody()->write("Questa è un'altra pagina");
     return $response;
 });
+
+$app->get('/esempio_template/{name}', function (Request $request, Response $response, $args) {
+    //Recupero l'oggetto che gestisce i template dal container
+    //usando il metodo get e passando la stringa con cui l'ho identificato
+    //nel metodo set
+    $template = $this->get('template');
+    //Recupero dall'URL il nome che si trova dopo esempio_template
+    $name = $args['name'];
+    //La stringa creata dal metodo render viene poi inserita nel body
+    //grazie al metodo write
+    $response->getBody()->write($template->render('esempio',[
+        'name' => $name
+    ]));
+    return $response;
+});
+
+
+
 
 $app->run();
