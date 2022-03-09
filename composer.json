@@ -1,4 +1,9 @@
 {
+    "autoload": {
+        "psr-4": {
+            "Util\\" : "Util/"
+        }
+    },
     "require": {
         "slim/slim": "4.*",
         "slim/psr7": "^1.5",
