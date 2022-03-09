@@ -1,1 +1,4 @@
+#Esclude la cartella delle librerie generata da composer
 \vendor
+
+/conf/config.php
