@@ -3,6 +3,8 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
 use DI\Container as Container;
+use League\Plates\Engine as Engine;
+use Util\Connection;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -11,7 +13,11 @@ $container = new Container();
 AppFactory::setContainer($container);
 
 $container->set('template', function (){
-    return new League\Plates\Engine('../templates', 'phtml');
+    return new Engine('../templates', 'phtml');
+});
+
+$container->set('connection', function (){
+    return Connection::getInstance();
 });
 
 $app = AppFactory::create();
@@ -58,6 +64,14 @@ $app->get('/esempio_template/{name}', function (Request $request, Response $resp
     return $response;
 });
 
+$app->get('/esempio_database/', function (Request $request, Response $response, $args) {
+    $pdo = $this->get('connection');
+    $stmt = $pdo->query('SELECT * FROM corso');
+    $result = $stmt->fetchAll();
+    $response->getBody()->write($result[0]['descrizione']);
+    return $response;
+    }
+);
 
 
 
