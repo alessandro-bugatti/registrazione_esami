@@ -136,6 +136,19 @@ $app->get('/studente/form', function (Request $request, Response $response, $arg
 }
 );
 
+/*
+ * Inserisce un nuovo studente
+ */
+$app->post('/studente', function (Request $request, Response $response, $args){
+    //Qui andrebbe il codice per l'inserimento dello studente nel DB
+    $data = $request->getParsedBody();
+    $matricola = $data['matricola'];
+    $cognome = $data['cognome'];
+    $nome = $data['nome'];
+    $response->getBody()->write('Studente inserito: ' . $matricola . ', ' .
+        $cognome . ' ' . $nome);
+    return $response;
+});
 
 
 //Rotta per gli assett (immagini, file css, ecc.,
