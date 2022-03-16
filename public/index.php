@@ -75,6 +75,50 @@ $app->get('/esempio_database/', function (Request $request, Response $response, 
     }
 );
 
+$app->get('/studente/cerca', function (Request $request, Response $response, $args) {
+    $template = $this->get('template');
+    $response->getBody()->write($template->render('cercaStudente', [
+        'basepath' => BASE_PATH,
+    ]));
+    return $response;
+}
+);
+
+$app->post('/voto/form', function (Request $request, Response $response, $args) {
+    $post = $request->getParsedBody();
+    $matricola = $post['matricola'];
+    if ($matricola == '12345') {
+        $template = $this->get('template');
+        $response->getBody()->write($template->render('inserisciVoto', [
+            'matricola' => $matricola,
+            'basepath' => BASE_PATH,
+        ]));
+        return $response;
+    }
+    else{
+        $response = $response->withStatus(302);
+        return $response->withHeader('Location', BASE_PATH . '/studente/form');
+    }
+}
+);
+
+$app->post('/studente/{matricola}/voto', function (Request $request, Response $response, $args) {
+    $response->getBody()->write($args['matricola']);
+    return $response;
+}
+);
+
+$app->get('/studente/form', function (Request $request, Response $response, $args) {
+    $template = $this->get('template');
+    $response->getBody()->write($template->render('inserisciStudente', [
+        'basepath' => BASE_PATH,
+    ]));
+    return $response;
+}
+);
+
+
+
 //Rotta per le immagini, deve essere messa in fondo a tutte le rotte
 //altrimenti le intercetta
 $app->get('/{folder}/{file}', function (Request $request, Response $response, $args) {

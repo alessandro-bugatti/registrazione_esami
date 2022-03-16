@@ -1,0 +1,17 @@
+<?php
+/** @var $name */
+?>
+<?php $this->layout('home', [
+        'title' => 'Prova',
+        'basepath' => $basepath,
+])
+?>
+<h1>Ricerca studente</h1>
+
+<form class="form-horizontal" action="<?=$basepath?>/voto/form" method="post">
+    <div class="input-group">
+        <span class="input-group-addon col-4">Matricola</span>
+        <input type="text" class="form-input" placeholder="Matricola dello studente" name="matricola">
+        <input type="submit" class="btn btn-primary" value="Cerca">
+    </div>
+</form>
