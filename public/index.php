@@ -1,6 +1,7 @@
 <?php
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Log\LoggerInterface;
 use Slim\Factory\AppFactory;
 use DI\Container as Container;
 use League\Plates\Engine as Engine;
@@ -42,12 +43,12 @@ $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 //sottocartella dove si trova l'applicazione
 $app->setBasePath(BASE_PATH);
 
-$app->get('/', function (Request $request, Response $response, $args) {
+$app->get('/', function (Request $request, Response $response) {
     $response->getBody()->write("Hello world!");
     return $response;
 });
 
-$app->get('/altra_pagina', function (Request $request, Response $response, $args) {
+$app->get('/altra_pagina', function (Request $request, Response $response) {
     $response->getBody()->write("Questa è un'altra pagina");
     return $response;
 });
@@ -67,7 +68,7 @@ $app->get('/esempio_template/{name}', function (Request $request, Response $resp
     return $response;
 });
 
-$app->get('/esempio_database/', function (Request $request, Response $response, $args) {
+$app->get('/esempio_database/', function (Request $request, Response $response) {
     $pdo = $this->get('connection');
     $stmt = $pdo->query('SELECT * FROM corso');
     $result = $stmt->fetchAll();
@@ -80,7 +81,7 @@ $app->get('/esempio_database/', function (Request $request, Response $response, 
  * Rotta per la creazione della form di ricerca di uno studente
  * tramite la matricola
  */
-$app->get('/studente/cerca', function (Request $request, Response $response, $args) {
+$app->get('/studente/cerca', function (Request $request, Response $response) {
     $template = $this->get('template');
     $response->getBody()->write($template->render('cercaStudente'));
     return $response;
@@ -92,7 +93,7 @@ $app->get('/studente/cerca', function (Request $request, Response $response, $ar
  * - se è già presente mostra la form di inserimento del voto
  * - altrimenti ridirigere verso la pagina di aggiunta dello studente
  */
-$app->post('/voto/form', function (Request $request, Response $response, $args) {
+$app->post('/voto/form', function (Request $request, Response $response) {
     //Serve a fare il parsing dei dati contenuti nel body
     //spediti tramite la form con il metodo POST
     $data = $request->getParsedBody();
@@ -129,9 +130,9 @@ $app->post('/studente/{matricola}/voto', function (Request $request, Response $r
 /*
  * Genera il form per l'inserimento di uno studente
  */
-$app->get('/studente/form', function (Request $request, Response $response, $args) {
+$app->get('/studente/form', function (Request $request, Response $response) {
     $template = $this->get('template');
-    $response->getBody()->write($template->render('inserisciStudente',));
+    $response->getBody()->write($template->render('inserisciStudente'));
     return $response;
 }
 );
@@ -139,7 +140,7 @@ $app->get('/studente/form', function (Request $request, Response $response, $arg
 /*
  * Inserisce un nuovo studente
  */
-$app->post('/studente', function (Request $request, Response $response, $args){
+$app->post('/studente', function (Request $request, Response $response){
     //Qui andrebbe il codice per l'inserimento dello studente nel DB
     $data = $request->getParsedBody();
     $matricola = $data['matricola'];
