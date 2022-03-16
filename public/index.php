@@ -14,7 +14,9 @@ $container = new Container();
 AppFactory::setContainer($container);
 
 $container->set('template', function (){
-    return new Engine('../templates', 'phtml');
+    $engine = new Engine('../templates', 'phtml');
+    $engine->addData([ 'basepath' => BASE_PATH]);
+    return $engine;
 });
 
 $container->set('connection', function (){
@@ -38,7 +40,7 @@ $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
 //Questa parte deve essere sostituita con il nome della propria+
 //sottocartella dove si trova l'applicazione
-$app->setBasePath("/registrazione_esami");
+$app->setBasePath(BASE_PATH);
 
 $app->get('/', function (Request $request, Response $response, $args) {
     $response->getBody()->write("Hello world!");
@@ -60,8 +62,7 @@ $app->get('/esempio_template/{name}', function (Request $request, Response $resp
     //La stringa creata dal metodo render viene poi inserita nel body
     //grazie al metodo write
     $response->getBody()->write($template->render('esempio',[
-        'name' => $name,
-        'basepath' => BASE_PATH,
+        'name' => $name
     ]));
     return $response;
 });
@@ -75,57 +76,80 @@ $app->get('/esempio_database/', function (Request $request, Response $response, 
     }
 );
 
+/*
+ * Rotta per la creazione della form di ricerca di uno studente
+ * tramite la matricola
+ */
 $app->get('/studente/cerca', function (Request $request, Response $response, $args) {
     $template = $this->get('template');
-    $response->getBody()->write($template->render('cercaStudente', [
-        'basepath' => BASE_PATH,
-    ]));
+    $response->getBody()->write($template->render('cercaStudente'));
     return $response;
 }
 );
 
+/*
+ * Gestisce il caso che sia presente o meno lo studente
+ * - se è già presente mostra la form di inserimento del voto
+ * - altrimenti ridirigere verso la pagina di aggiunta dello studente
+ */
 $app->post('/voto/form', function (Request $request, Response $response, $args) {
-    $post = $request->getParsedBody();
-    $matricola = $post['matricola'];
+    //Serve a fare il parsing dei dati contenuti nel body
+    //spediti tramite la form con il metodo POST
+    $data = $request->getParsedBody();
+    //Recupero la matricola
+    $matricola = $data['matricola'];
+    //Controllo se è presente, nella realtà verificando
+    //all'interno del database, qua è solo per prova
     if ($matricola == '12345') {
         $template = $this->get('template');
         $response->getBody()->write($template->render('inserisciVoto', [
-            'matricola' => $matricola,
-            'basepath' => BASE_PATH,
+            'matricola' => $matricola
         ]));
         return $response;
     }
     else{
-        $response = $response->withStatus(302);
-        return $response->withHeader('Location', BASE_PATH . '/studente/form');
+        return $response->withStatus(302)->withHeader('Location', BASE_PATH . '/studente/form');
     }
 }
 );
 
+/*
+ * Inserisce il voto dello studente individuato dalla {matricola},
+ * da completare con l'informazione sul professore che inserisce il voto
+ * e dell'esame al quale si riferisce
+ */
+
 $app->post('/studente/{matricola}/voto', function (Request $request, Response $response, $args) {
+    //Qui andrebbe il codice associato all'inserimento del voto nel database
     $response->getBody()->write($args['matricola']);
     return $response;
 }
 );
 
+/*
+ * Genera il form per l'inserimento di uno studente
+ */
 $app->get('/studente/form', function (Request $request, Response $response, $args) {
     $template = $this->get('template');
-    $response->getBody()->write($template->render('inserisciStudente', [
-        'basepath' => BASE_PATH,
-    ]));
+    $response->getBody()->write($template->render('inserisciStudente',));
     return $response;
 }
 );
 
 
 
-//Rotta per le immagini, deve essere messa in fondo a tutte le rotte
+//Rotta per gli assett (immagini, file css, ecc.,
+// deve essere messa in fondo a tutte le rotte
 //altrimenti le intercetta
 $app->get('/{folder}/{file}', function (Request $request, Response $response, $args) {
+    //Crea il percorso fisico dove si dovrebbe trovare il file
+    //Ad esempio D:\xampp_7_4_25\htdocs\registrazione_esami\public/../images/logo.jpg
     $filePath = __DIR__ . '/../' . $args['folder']. '/'. $args['file'];
+    //Controllo dell'esistenza del file
     if (!file_exists($filePath)) {
         return $response->withStatus(404, 'File Not Found');
     }
+    //Si controlla l'estensione del file
     switch (pathinfo($filePath, PATHINFO_EXTENSION)) {
         case 'css':
             $mimeType = 'text/css';
@@ -135,14 +159,20 @@ $app->get('/{folder}/{file}', function (Request $request, Response $response, $a
             $mimeType = 'application/jpeg';
             break;
 
-        // Add more supported mime types per file extension as you need here
-
+        // Per evitare di rimandare indietro file con estensione
+        // diversa da quelle riconosciute, nel default si fa in
+        // modo di non mandare indietro nulla
         default:
             $mimeType = 'text/html';
+            $filePath = null;
     }
-
+    //Aggiunge nell'header il content type corretto, che ho individuato
+    //con lo switch di prima
     $response = $response->withHeader('Content-Type',$mimeType);
-    $response->getBody()->write(file_get_contents($filePath));
+    // Scrive nel body il contenuto del file, se è tra quelli con estensioni
+    // conosciute
+    if ($filePath !== null)
+        $response->getBody()->write(file_get_contents($filePath));
     return $response;
 });
 
