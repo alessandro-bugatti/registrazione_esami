@@ -1,8 +1,11 @@
 <?php
-/** @var $name */
+/** @var $name
+ *  @var $title
+ */
 ?>
-<?php $this->layout('home', ['title' => 'Prova']) ?>
-
+<?php $this->layout('home', [
+        'title' => $title,
+])
+?>
 <h1>Questo è un esempio di utilizzo di template</h1>
-
 <p>Ciao <?=$name?></p>
