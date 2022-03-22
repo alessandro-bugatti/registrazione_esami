@@ -1,4 +1,6 @@
 <?php
+
+use Model\VotoRepository;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
@@ -122,7 +124,13 @@ $app->post('/voto/form', function (Request $request, Response $response) {
 
 $app->post('/studente/{matricola}/voto', function (Request $request, Response $response, $args) {
     //Qui andrebbe il codice associato all'inserimento del voto nel database
-    $response->getBody()->write($args['matricola']);
+    $data = $request->getParsedBody();
+    $voto = $data['voto'];
+    $successo = VotoRepository::inserisciVoto($voto,$args['matricola'],1,1);
+    if ($successo)
+        $response->getBody()->write('Inserito il voto ');
+    else
+        $response->getBody()->write('Voto non inserito');
     return $response;
 }
 );
