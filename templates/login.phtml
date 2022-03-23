@@ -8,6 +8,11 @@
 ])
 ?>
 <h1>Login</h1>
+<?php if(isset($login_fallito)):?>
+<div class="toast toast-error">
+    Credenziali non corrette, riprova.
+</div>
+<?php endif; ?>
 <form class="form" action="<?=$basepath?>/autenticazione" method="post">
     <div class="form-group">
         <label class="form-label" for="username">Username</label>
