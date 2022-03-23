@@ -34,10 +34,16 @@ $app = AppFactory::create();
 // composer require tuupola/slim-jwt-auth
 $app->add(new JwtAuthentication([
     "path" => [BASE_PATH],
-    "ignore" => [
-        BASE_PATH . "/login",
-        BASE_PATH . "/autenticazione",
-        BASE_PATH, '/images'],
+    "ignore" => [BASE_PATH . "/login", BASE_PATH . "/autenticazione",
+        BASE_PATH . "/images"],
+    //Questa parte fa in modo che se l'autenticazione fallisce per qualsiasi
+    // motivo venga fatto un
+    //redirect verso la pagina di login
+    "error" => function ($response, $arguments) {
+        return $response
+            ->withHeader("Location", BASE_PATH . '/login')
+            ->withStatus(301);
+    },
     "secret" => JWT_SECRET
 ]));
 
