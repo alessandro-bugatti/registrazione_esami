@@ -46,38 +46,8 @@ $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 $app->setBasePath(BASE_PATH);
 
 $app->get('/', function (Request $request, Response $response) {
-    $response->getBody()->write("Hello world!");
-    return $response;
+    return $response->withStatus(302)->withHeader('Location', BASE_PATH . '/login');;
 });
-
-$app->get('/altra_pagina', function (Request $request, Response $response) {
-    $response->getBody()->write("Questa è un'altra pagina");
-    return $response;
-});
-
-$app->get('/esempio_template/{name}', function (Request $request, Response $response, $args) {
-    //Recupero l'oggetto che gestisce i template dal container
-    //usando il metodo get e passando la stringa con cui l'ho identificato
-    //nel metodo set
-    $template = $this->get('template');
-    //Recupero dall'URL il nome che si trova dopo esempio_template
-    $name = $args['name'];
-    //La stringa creata dal metodo render viene poi inserita nel body
-    //grazie al metodo write
-    $response->getBody()->write($template->render('esempio',[
-        'name' => $name
-    ]));
-    return $response;
-});
-
-$app->get('/esempio_database/', function (Request $request, Response $response) {
-    $pdo = $this->get('connection');
-    $stmt = $pdo->query('SELECT * FROM corso');
-    $result = $stmt->fetchAll();
-    $response->getBody()->write($result[0]['descrizione']);
-    return $response;
-    }
-);
 
 /*
  * Rotta per la creazione della form di ricerca di uno studente
