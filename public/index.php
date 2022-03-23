@@ -66,6 +66,9 @@ $app->get('/', function (Request $request, Response $response) {
  * Rotta che mostra il form di login
  */
 $app->get('/login', function (Request $request, Response $response) {
+    //Se il login è già stato effettuato ridirigo verso la ricerca dello studente
+    if (isset($_COOKIE['token']))
+        return $response->withStatus(302)->withHeader('Location', BASE_PATH . '/studente/cerca');
     $template = $this->get('template');
     $response->getBody()->write($template->render('login'));
     return $response;
