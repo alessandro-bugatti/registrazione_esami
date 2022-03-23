@@ -49,11 +49,24 @@ $app->get('/', function (Request $request, Response $response) {
     return $response->withStatus(302)->withHeader('Location', BASE_PATH . '/login');
 });
 
+/*
+ * Rotta che mostra il form di login
+ */
 $app->get('/login', function (Request $request, Response $response) {
     $template = $this->get('template');
     $response->getBody()->write($template->render('login'));
     return $response;
 });
+
+/*
+ * Rotta che genera il token JWT dopo aver proceduto all'autenticazione
+ */
+$app->post('/autenticazione', function (Request $request, Response $response) {
+    $id = \Model\ProfessoreRepository::verificaAutenticazione('alex','alex');
+    $response->getBody()->write('' . $id);
+    return $response;
+});
+
 
 /*
  * Rotta per la creazione della form di ricerca di uno studente
