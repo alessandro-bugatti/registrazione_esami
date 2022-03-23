@@ -75,8 +75,23 @@ $app->get('/login', function (Request $request, Response $response) {
  * Rotta che genera il token JWT dopo aver proceduto all'autenticazione
  */
 $app->post('/autenticazione', function (Request $request, Response $response) {
-    $id = \Model\ProfessoreRepository::verificaAutenticazione('alex','alex');
-    $response->getBody()->write('' . $id);
+    //Se il login è già stato effettuato ridirigo verso la ricerca dello studente
+    if (isset($_COOKIE['token']))
+        return $response->withStatus(302)->withHeader('Location', BASE_PATH . '/studente/cerca');
+    $data = $request->getParsedBody();
+    $username = $data['username'];
+    $password = $data['password'];
+    $jwt = \Model\ProfessoreRepository::verificaAutenticazione($username,$password);
+    if ($jwt !== null) {
+        setcookie('token', $jwt);
+        return $response->withStatus(302)->withHeader('Location', BASE_PATH . '/studente/cerca');
+    }
+    else{
+        $template = $this->get('template');
+        $response->getBody()->write($template->render('login',[
+            'login_fallito' => true
+        ]));
+    }
     return $response;
 });
 
