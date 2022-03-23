@@ -143,7 +143,11 @@ $app->post('/studente/{matricola}/voto', function (Request $request, Response $r
     //Qui andrebbe il codice associato all'inserimento del voto nel database
     $data = $request->getParsedBody();
     $voto = $data['voto'];
-    $successo = VotoRepository::inserisciVoto($voto,$args['matricola'],1,1);
+    //Si recupera l'id del docente che sta dando il voto attraverso il token JWT
+    $token = $request->getAttribute('token');
+    $data = $token['data'];
+    $id_professore = $data->id;
+    $successo = VotoRepository::inserisciVoto($voto,$args['matricola'],1, $id_professore);
     if ($successo)
         $response->getBody()->write('Inserito il voto ');
     else
