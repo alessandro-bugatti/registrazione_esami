@@ -46,7 +46,13 @@ $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 $app->setBasePath(BASE_PATH);
 
 $app->get('/', function (Request $request, Response $response) {
-    return $response->withStatus(302)->withHeader('Location', BASE_PATH . '/login');;
+    return $response->withStatus(302)->withHeader('Location', BASE_PATH . '/login');
+});
+
+$app->get('/login', function (Request $request, Response $response) {
+    $template = $this->get('template');
+    $response->getBody()->write($template->render('login'));
+    return $response;
 });
 
 /*
