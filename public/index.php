@@ -7,7 +7,9 @@ use Psr\Log\LoggerInterface;
 use Slim\Factory\AppFactory;
 use DI\Container as Container;
 use League\Plates\Engine as Engine;
+use Tuupola\Middleware\JwtAuthentication;
 use Util\Connection;
+
 
 require __DIR__ . '/../vendor/autoload.php';
 require_once '../conf/config.php';
@@ -27,6 +29,13 @@ $container->set('connection', function (){
 });
 
 $app = AppFactory::create();
+
+// Per usare questa classe bisogno installarla con Composer
+// composer require tuupola/slim-jwt-auth
+$app->add(new JwtAuthentication([
+    "ignore" => ["/", "/login", "/autenticazione"],
+    "secret" => JWT_SECRET
+]));
 
 /**
  * Add Error Middleware
