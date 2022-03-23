@@ -33,7 +33,11 @@ $app = AppFactory::create();
 // Per usare questa classe bisogno installarla con Composer
 // composer require tuupola/slim-jwt-auth
 $app->add(new JwtAuthentication([
-    "ignore" => ["/", "/login", "/autenticazione"],
+    "path" => [BASE_PATH],
+    "ignore" => [
+        BASE_PATH . "/login",
+        BASE_PATH . "/autenticazione",
+        BASE_PATH, '/images'],
     "secret" => JWT_SECRET
 ]));
 
