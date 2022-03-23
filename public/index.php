@@ -7,7 +7,9 @@ use Psr\Log\LoggerInterface;
 use Slim\Factory\AppFactory;
 use DI\Container as Container;
 use League\Plates\Engine as Engine;
+use Tuupola\Middleware\JwtAuthentication;
 use Util\Connection;
+
 
 require __DIR__ . '/../vendor/autoload.php';
 require_once '../conf/config.php';
@@ -28,6 +30,23 @@ $container->set('connection', function (){
 
 $app = AppFactory::create();
 
+// Per usare questa classe bisogno installarla con Composer
+// composer require tuupola/slim-jwt-auth
+$app->add(new JwtAuthentication([
+    "path" => [BASE_PATH],
+    "ignore" => [BASE_PATH . "/login", BASE_PATH . "/autenticazione",
+        BASE_PATH . "/images"],
+    //Questa parte fa in modo che se l'autenticazione fallisce per qualsiasi
+    // motivo venga fatto un
+    //redirect verso la pagina di login
+    "error" => function ($response, $arguments) {
+        return $response
+            ->withHeader("Location", BASE_PATH . '/login')
+            ->withStatus(301);
+    },
+    "secret" => JWT_SECRET
+]));
+
 /**
  * Add Error Middleware
  *
@@ -46,38 +65,45 @@ $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 $app->setBasePath(BASE_PATH);
 
 $app->get('/', function (Request $request, Response $response) {
-    $response->getBody()->write("Hello world!");
-    return $response;
+    return $response->withStatus(302)->withHeader('Location', BASE_PATH . '/login');
 });
 
-$app->get('/altra_pagina', function (Request $request, Response $response) {
-    $response->getBody()->write("Questa è un'altra pagina");
-    return $response;
-});
-
-$app->get('/esempio_template/{name}', function (Request $request, Response $response, $args) {
-    //Recupero l'oggetto che gestisce i template dal container
-    //usando il metodo get e passando la stringa con cui l'ho identificato
-    //nel metodo set
+/*
+ * Rotta che mostra il form di login
+ */
+$app->get('/login', function (Request $request, Response $response) {
+    //Se il login è già stato effettuato ridirigo verso la ricerca dello studente
+    if (isset($_COOKIE['token']))
+        return $response->withStatus(302)->withHeader('Location', BASE_PATH . '/studente/cerca');
     $template = $this->get('template');
-    //Recupero dall'URL il nome che si trova dopo esempio_template
-    $name = $args['name'];
-    //La stringa creata dal metodo render viene poi inserita nel body
-    //grazie al metodo write
-    $response->getBody()->write($template->render('esempio',[
-        'name' => $name
-    ]));
+    $response->getBody()->write($template->render('login'));
     return $response;
 });
 
-$app->get('/esempio_database/', function (Request $request, Response $response) {
-    $pdo = $this->get('connection');
-    $stmt = $pdo->query('SELECT * FROM corso');
-    $result = $stmt->fetchAll();
-    $response->getBody()->write($result[0]['descrizione']);
-    return $response;
+/*
+ * Rotta che genera il token JWT dopo aver proceduto all'autenticazione
+ */
+$app->post('/autenticazione', function (Request $request, Response $response) {
+    //Se il login è già stato effettuato ridirigo verso la ricerca dello studente
+    if (isset($_COOKIE['token']))
+        return $response->withStatus(302)->withHeader('Location', BASE_PATH . '/studente/cerca');
+    $data = $request->getParsedBody();
+    $username = $data['username'];
+    $password = $data['password'];
+    $jwt = \Model\ProfessoreRepository::verificaAutenticazione($username,$password);
+    if ($jwt !== null) {
+        setcookie('token', $jwt);
+        return $response->withStatus(302)->withHeader('Location', BASE_PATH . '/studente/cerca');
     }
-);
+    else{
+        $template = $this->get('template');
+        $response->getBody()->write($template->render('login',[
+            'login_fallito' => true
+        ]));
+    }
+    return $response;
+});
+
 
 /*
  * Rotta per la creazione della form di ricerca di uno studente
@@ -126,7 +152,11 @@ $app->post('/studente/{matricola}/voto', function (Request $request, Response $r
     //Qui andrebbe il codice associato all'inserimento del voto nel database
     $data = $request->getParsedBody();
     $voto = $data['voto'];
-    $successo = VotoRepository::inserisciVoto($voto,$args['matricola'],1,1);
+    //Si recupera l'id del docente che sta dando il voto attraverso il token JWT
+    $token = $request->getAttribute('token');
+    $data = $token['data'];
+    $id_professore = $data->id;
+    $successo = VotoRepository::inserisciVoto($voto,$args['matricola'],1, $id_professore);
     if ($successo)
         $response->getBody()->write('Inserito il voto ');
     else

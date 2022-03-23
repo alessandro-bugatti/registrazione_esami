@@ -9,3 +9,6 @@ const DB_CHAR = 'utf8';
 
 //Sottocartella dove viene eseguita l'applicazione
 const BASE_PATH = 'sottocartella';
+
+//Segreto del token JWT
+const JWT_SECRET = 'jwt_secret';
